@@ -1,0 +1,1099 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>[hidden]{display:none!important}body{margin:0}</style>
+<title>Dual Enrollment Physics</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: lab-notebook page on a faint graph grid; left topic sidebar (topic > subtabs); each tab is a column of
+   diagram + explanation pairs. Vector colors are fixed meaning: blue = velocity, orange = acceleration/force. */
+:root{
+  --bg:#eef2f7; --surface:#ffffff; --surface-2:#f5f7fb; --ink:#13203a; --muted:#56637a;
+  --line:#d3dbe7; --grid:#e1e7f0; --path:#8f9db3;
+  --vel:#1d63c9; --acc:#d4471c; --good:#17784d; --bad:#b33131; --hl:#fff1bd; --on-ink:#ffffff;
+  --f-display:"Bricolage Grotesque","Avenir Next","Segoe UI",system-ui,sans-serif;
+  --f-body:"Atkinson Hyperlegible","Segoe UI",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0d1420; --surface:#152034; --surface-2:#111a2b; --ink:#e5ecf6; --muted:#9aa8be;
+    --line:#2a3851; --grid:#172236; --path:#6c7b93;
+    --vel:#62a4ff; --acc:#ff8058; --good:#4cc38a; --bad:#ff7373; --hl:#3d3412; --on-ink:#0d1420;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0d1420; --surface:#152034; --surface-2:#111a2b; --ink:#e5ecf6; --muted:#9aa8be;
+  --line:#2a3851; --grid:#172236; --path:#6c7b93;
+  --vel:#62a4ff; --acc:#ff8058; --good:#4cc38a; --bad:#ff7373; --hl:#3d3412; --on-ink:#0d1420;
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+body{
+  background:var(--bg);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:28px 28px;
+  color:var(--ink); font-family:var(--f-body); font-size:17px; line-height:1.6;
+}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:1300px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+header.top .wrap{padding-block:36px 20px}
+.eyebrow{font-family:var(--f-mono);font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;line-height:1.15;margin:0}
+h1{font-size:clamp(2.1rem,5.5vw,3.4rem);font-weight:800;letter-spacing:-.02em}
+h1 .loop{color:var(--acc)}
+.lede{font-size:1.15rem;color:var(--muted);max-width:60ch;margin:10px 0 0}
+
+.layout{display:grid;grid-template-columns:250px minmax(0,1fr);gap:32px;align-items:start}
+nav.side{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px);margin-top:28px;max-height:calc(100vh - 32px);overflow-y:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px}
+.topic{width:100%;display:flex;align-items:center;gap:8px;font:800 1.02rem/1.25 var(--f-display);color:var(--ink);background:none;border:0;border-radius:8px;padding:10px 8px;cursor:pointer;text-align:left}
+.topic:hover{background:var(--surface-2)}
+.topic .chev{flex:0 0 auto;width:10px;height:10px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);margin-left:auto;transition:transform .15s}
+.topic[aria-expanded="false"] .chev{transform:rotate(-45deg)}
+.subtabs{display:flex;flex-direction:column;gap:2px;margin:2px 0 4px 10px;padding-left:10px;border-left:2px solid var(--line)}
+.tab{font:600 .95rem/1.25 var(--f-body);color:var(--ink);background:none;border:0;border-radius:8px;padding:9px 10px;cursor:pointer;display:flex;gap:10px;align-items:center;text-align:left}
+.tab:hover{background:var(--surface-2)}
+main{min-width:0;container-type:inline-size}
+@media (max-width:900px){
+  .layout{grid-template-columns:minmax(0,1fr);gap:0}
+  nav.side{position:static;max-height:none;margin-top:8px}
+  .subtabs{flex-direction:row;flex-wrap:wrap;margin-left:0;padding-left:0;border-left:0}
+  .tab{border:1px solid var(--line);border-radius:999px;padding:8px 14px}
+}
+.tab .n{font-family:var(--f-mono);font-size:.75rem;color:var(--muted)}
+.tab:hover{border-color:var(--path)}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--on-ink);border-color:var(--ink)}
+.topic:focus-visible{outline:3px solid var(--vel);outline-offset:2px}
+.tab[aria-selected="true"] .n{color:var(--on-ink);opacity:.7}
+.tab:focus-visible,button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--vel);outline-offset:2px}
+
+main{padding-block:28px 56px}
+.panel{display:flex;flex-direction:column;gap:28px}
+.panel>header h2{font-size:clamp(1.6rem,3.6vw,2.2rem);font-weight:800}
+.panel>header p{color:var(--muted);max-width:65ch;margin:8px 0 0}
+h3{font-size:1.25rem;font-weight:600}
+p{margin:0}
+.prose{display:flex;flex-direction:column;gap:12px;max-width:65ch;min-width:0}
+
+.row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:center}
+.row.wide-left{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)}
+@container (max-width:640px){.row,.row.wide-left{grid-template-columns:minmax(0,1fr)}}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px}
+figure{margin:0;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;min-width:0}
+figure svg{display:block;width:100%;height:auto;max-width:100%}
+figcaption{font-size:.88rem;color:var(--muted);margin-top:8px}
+
+.key{display:flex;flex-wrap:wrap;gap:14px;font-size:.9rem;margin-top:8px}
+.key span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:22px;height:4px;border-radius:2px;display:inline-block}
+.sw.v{background:var(--vel)} .sw.a{background:var(--acc)} .sw.p{background:var(--path)}
+
+.callout{border-left:5px solid var(--acc);background:var(--surface);padding:16px 18px;border-radius:0 10px 10px 0}
+.callout.blue{border-left-color:var(--vel)}
+.callout strong:first-child{display:block;font-family:var(--f-display);font-size:1.05rem;margin-bottom:4px}
+
+.v{color:var(--vel);font-weight:700} .a{color:var(--acc);font-weight:700}
+.mark{background:var(--hl);padding:0 .2em;border-radius:3px}
+
+.eq{font-family:var(--f-display);font-weight:600;font-size:1.55rem;letter-spacing:.01em;display:inline-flex;align-items:center;gap:.3em;flex-wrap:wrap}
+.eq i{font-family:var(--f-body);font-style:italic;font-weight:400}
+.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;font-size:.85em;line-height:1.15}
+.frac>span:first-child{border-bottom:2px solid currentColor;padding:0 .25em 2px}
+.frac>span:last-child{padding-top:2px}
+
+.formulas{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+.formula{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:8px}
+.formula .lab{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.formula p{font-size:.92rem;color:var(--muted)}
+.formula.hero{border:2px solid var(--acc)}
+
+.table-wrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+th{font-family:var(--f-mono);font-size:.74rem;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:500;background:var(--surface-2)}
+td.num,.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+
+.chips{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.chip{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px}
+.chip b{display:block;font-family:var(--f-display);font-weight:600}
+.chip span{font-size:.9rem;color:var(--muted)}
+
+.fbd{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.fbd figure{display:flex;flex-direction:column;gap:6px}
+.fbd h3{font-size:1.05rem}
+.fbd .src{font-size:.9rem}
+
+ol.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+ol.steps li{counter-increment:s;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 14px 14px 52px;position:relative;font-size:.95rem}
+ol.steps li::before{content:counter(s);position:absolute;left:14px;top:12px;width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--on-ink);font:700 .85rem/26px var(--f-mono);text-align:center}
+
+.example{display:flex;flex-direction:column;gap:14px}
+.example .given{display:flex;flex-wrap:wrap;gap:8px}
+.example .given span{font-family:var(--f-mono);font-size:.85rem;background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:4px 8px}
+.work{display:flex;flex-direction:column;gap:8px;margin:0;padding:0;list-style:none}
+.work li{display:grid;grid-template-columns:minmax(0,1fr);gap:2px;padding:10px 12px;border-radius:8px;background:var(--surface-2)}
+.work li small{color:var(--muted);font-size:.85rem}
+.work .calc{font-family:var(--f-mono);font-size:.95rem;overflow-x:auto}
+.answer{font-weight:700}
+.answer .mono{background:var(--hl);padding:1px 6px;border-radius:4px}
+
+/* simulator */
+.sim{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:24px;align-items:start}
+@container (max-width:700px){.sim{grid-template-columns:minmax(0,1fr)}}
+.controls{display:flex;flex-direction:column;gap:18px}
+.slider label{display:flex;justify-content:space-between;font-weight:700;gap:12px}
+.slider label output{font-family:var(--f-mono);font-weight:500}
+.slider input{width:100%;accent-color:var(--vel)}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.readout div{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.readout dt{font-size:.8rem;color:var(--muted)}
+.readout dd{margin:0;font-family:var(--f-mono);font-size:1.15rem;font-variant-numeric:tabular-nums}
+.readout .accent dd{color:var(--acc)} .readout .velo dd{color:var(--vel)}
+.btns{display:flex;flex-wrap:wrap;gap:10px}
+.btn{font:700 .95rem/1 var(--f-body);padding:11px 16px;border-radius:8px;border:1px solid var(--ink);background:var(--ink);color:var(--on-ink);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn:disabled{opacity:.5;cursor:default}
+.status{font-size:.92rem;color:var(--muted);min-height:3em}
+
+/* practice */
+.qs{display:flex;flex-direction:column;gap:14px}
+.q{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:12px}
+.q .qn{font-family:var(--f-mono);font-size:.75rem;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+.q .ans{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.q input[type="number"]{font:500 1rem var(--f-mono);width:9em;padding:9px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink)}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opts label{display:flex;gap:10px;align-items:flex-start;padding:9px 12px;border:1px solid var(--line);border-radius:8px;cursor:pointer;background:var(--surface-2)}
+.fb{font-weight:700;font-size:.95rem}
+.fb.ok{color:var(--good)} .fb.no{color:var(--bad)}
+details{font-size:.93rem}
+summary{cursor:pointer;color:var(--vel);font-weight:700}
+details p{margin-top:8px;color:var(--muted)}
+.score{font-family:var(--f-mono)}
+.part{display:flex;flex-direction:column;gap:10px;padding-top:14px;border-top:1px solid var(--line)}
+.part .pl{font-family:var(--f-display);font-weight:600}
+.q8-figs{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:10px}
+.q8-figs figure{background:var(--surface-2)}
+.sol{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.sol .calc{font-family:var(--f-mono);font-size:.92rem;background:var(--surface-2);border-radius:6px;padding:6px 10px;overflow-x:auto;color:var(--ink)}
+ul.mistakes{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+ul.mistakes li{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:4px;font-size:.95rem}
+ul.mistakes .wrong{color:var(--bad);font-weight:700}
+ul.mistakes .right{color:var(--good);font-weight:700}
+
+footer .wrap{padding-block:0 40px;color:var(--muted);font-size:.85rem}
+
+/* svg text */
+svg text{font-family:var(--f-body);fill:var(--ink)}
+svg .lbl-v{fill:var(--vel);font-weight:700}
+svg .lbl-a{fill:var(--acc);font-weight:700}
+svg .lbl-m{fill:var(--muted)}
+svg .mono{font-family:var(--f-mono)}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important}}
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <p class="eyebrow">Mechanics · Interactive notes</p>
+    <h1>Dual Enrollment <span class="loop">Physics</span></h1>
+    <p class="lede">Lessons, worked examples, simulations, and practice, organized by topic.</p>
+  </div>
+</header>
+
+<div class="wrap layout">
+<nav class="side" aria-label="Topics">
+  <button class="topic" type="button" aria-expanded="true" aria-controls="ucm-tabs">Uniform Circular Motion<span class="chev" aria-hidden="true"></span></button>
+  <div class="subtabs" id="ucm-tabs" role="tablist" aria-orientation="vertical" aria-label="Uniform Circular Motion">
+    <button class="tab" role="tab" id="t-basics" aria-controls="basics" aria-selected="true"><span class="n">1</span>The Big Idea</button>
+    <button class="tab" role="tab" id="t-measure" aria-controls="measure" aria-selected="false"><span class="n">2</span>Period &amp; Speed</button>
+    <button class="tab" role="tab" id="t-acceleration" aria-controls="acceleration" aria-selected="false"><span class="n">3</span>Acceleration</button>
+    <button class="tab" role="tab" id="t-force" aria-controls="force" aria-selected="false"><span class="n">4</span>Centripetal Force</button>
+    <button class="tab" role="tab" id="t-examples" aria-controls="examples" aria-selected="false"><span class="n">5</span>Worked Examples</button>
+    <button class="tab" role="tab" id="t-simulator" aria-controls="simulator" aria-selected="false"><span class="n">6</span>Simulator</button>
+    <button class="tab" role="tab" id="t-practice" aria-controls="practice" aria-selected="false"><span class="n">7</span>Practice</button>
+  </div>
+</nav>
+
+<main>
+
+<!-- ============ 1. BASICS ============ -->
+<section class="panel" id="basics" role="tabpanel" aria-labelledby="t-basics">
+  <header>
+    <h2>Same speed, changing direction</h2>
+    <p>Uniform circular motion (UCM) means an object travels around a circle at a <strong>constant speed</strong>. The speed never changes, but the direction changes at every moment.</p>
+  </header>
+
+  <div class="row wide-left">
+    <figure>
+      <svg id="hero-svg" viewBox="0 0 360 330" role="img" aria-label="A ball moving around a circle. A blue velocity arrow points along the tangent; an orange acceleration arrow points to the center.">
+        <defs>
+          <marker id="mv1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" style="fill:var(--vel)"/></marker>
+          <marker id="ma1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" style="fill:var(--acc)"/></marker>
+        </defs>
+        <circle cx="180" cy="165" r="115" fill="none" style="stroke:var(--path)" stroke-width="2" stroke-dasharray="5 6"/>
+        <circle cx="180" cy="165" r="4" style="fill:var(--ink)"/>
+        <text x="188" y="182" class="lbl-m" font-size="12">center</text>
+        <line id="h-rad" style="stroke:var(--path)" stroke-width="1.5"/>
+        <text id="h-rlab" class="lbl-m" font-size="14" font-style="italic">r</text>
+        <line id="h-vel" style="stroke:var(--vel)" stroke-width="4" marker-end="url(#mv1)"/>
+        <line id="h-acc" style="stroke:var(--acc)" stroke-width="4" marker-end="url(#ma1)"/>
+        <circle id="h-ball" r="11" style="fill:var(--ink)"/>
+        <text id="h-vlab" class="lbl-v" font-size="16">v</text>
+        <text id="h-alab" class="lbl-a" font-size="16">a</text>
+      </svg>
+      <div class="key"><span><i class="sw v"></i>velocity (along the tangent)</span><span><i class="sw a"></i>acceleration (toward the center)</span></div>
+    </figure>
+    <div class="prose">
+      <div class="callout">
+        <strong>Key idea</strong>
+        Constant speed does <em>not</em> mean constant velocity. Velocity includes direction. In a circle the direction keeps turning, so velocity keeps changing, and a changing velocity means the object <span class="mark">is accelerating</span>.
+      </div>
+      <p><span class="v">Velocity</span> always points along the <strong>tangent</strong>, the straight line that just touches the circle at the ball's location.</p>
+      <p><span class="a">Acceleration</span> always points toward the <strong>center</strong>. It's called <em>centripetal</em> acceleration, which means "center-seeking."</p>
+      <p>Each arrow stays the same length as the ball goes around. The arrows only rotate.</p>
+    </div>
+  </div>
+
+  <div class="row">
+    <figure>
+      <svg id="snap-svg" viewBox="0 0 340 300" role="img" aria-label="Four snapshots of the ball around the circle. Each velocity arrow has the same length but points a different way."></svg>
+      <figcaption>Four snapshots of the same ball. Every arrow is the same length (5 m/s), but each one points a different way.</figcaption>
+    </figure>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Position</th><th>Speed</th><th>Velocity direction</th></tr></thead>
+        <tbody>
+          <tr><td>Right side</td><td class="num">5 m/s</td><td>↑ up</td></tr>
+          <tr><td>Top</td><td class="num">5 m/s</td><td>← left</td></tr>
+          <tr><td>Left side</td><td class="num">5 m/s</td><td>↓ down</td></tr>
+          <tr><td>Bottom</td><td class="num">5 m/s</td><td>→ right</td></tr>
+          <tr><td colspan="3"><strong>Speed:</strong> unchanged. <strong>Velocity:</strong> changes all the time, so the ball <span class="a">accelerates</span>.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div>
+    <h3 style="margin-bottom:12px">Where you see it</h3>
+    <div class="chips">
+      <div class="chip"><b>Ball on a string</b><span>Swung in a horizontal circle above your head.</span></div>
+      <div class="chip"><b>Car in a roundabout</b><span>Driving around at a steady speedometer reading.</span></div>
+      <div class="chip"><b>Satellites</b><span>A satellite in a circular orbit around Earth.</span></div>
+      <div class="chip"><b>Fan blade tips</b><span>Every point on the blade spins in its own circle.</span></div>
+      <div class="chip"><b>Washer spin cycle</b><span>Clothes are pressed against the spinning drum.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 2. MEASURE ============ -->
+<section class="panel" id="measure" role="tabpanel" aria-labelledby="t-measure" hidden>
+  <header>
+    <h2>Describing the motion: period, frequency, speed</h2>
+    <p>Before you can compute forces, you need to describe how fast the object goes around. Physicists usually start from the time it takes to make one lap.</p>
+  </header>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Quantity</th><th>Symbol</th><th>Meaning</th><th>SI unit</th></tr></thead>
+      <tbody>
+        <tr><td>Radius</td><td class="mono">r</td><td>Distance from the center to the object</td><td class="mono">m</td></tr>
+        <tr><td>Period</td><td class="mono">T</td><td>Time for one complete lap</td><td class="mono">s</td></tr>
+        <tr><td>Frequency</td><td class="mono">f</td><td>Laps per second</td><td class="mono">Hz = 1/s</td></tr>
+        <tr><td>Speed</td><td class="mono">v</td><td>Distance traveled per second</td><td class="mono">m/s</td></tr>
+        <tr><td>Angular speed <em>(extension)</em></td><td class="mono">ω</td><td>Angle swept per second</td><td class="mono">rad/s</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="row wide-left">
+    <figure>
+      <svg viewBox="0 0 420 300" role="img" aria-label="One lap of a circle unrolled into a straight line of length two pi r, covered in time T.">
+        <defs>
+          <marker id="mk2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" style="fill:var(--ink)"/></marker>
+          <marker id="mv2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" style="fill:var(--vel)"/></marker>
+        </defs>
+        <circle cx="110" cy="105" r="72" fill="none" style="stroke:var(--vel)" stroke-width="3"/>
+        <circle cx="110" cy="105" r="3.5" style="fill:var(--ink)"/>
+        <line x1="110" y1="105" x2="182" y2="105" style="stroke:var(--ink)" stroke-width="2"/>
+        <text x="140" y="98" font-size="16" font-style="italic">r</text>
+        <path d="M182 105 A72 72 0 0 0 110 33" fill="none" style="stroke:var(--vel)" stroke-width="3" marker-end="url(#mv2)"/>
+        <text x="200" y="52" class="lbl-v" font-size="14">one lap</text>
+        <text x="200" y="70" class="lbl-m" font-size="13">takes time T</text>
+        <path d="M150 190 Q 150 215 175 220" fill="none" style="stroke:var(--path)" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#mk2)"/>
+        <text x="60" y="210" class="lbl-m" font-size="13">unroll it</text>
+        <line x1="30" y1="250" x2="390" y2="250" style="stroke:var(--vel)" stroke-width="5" stroke-linecap="round"/>
+        <g style="stroke:var(--ink)" stroke-width="2"><line x1="30" y1="240" x2="30" y2="260"/><line x1="390" y1="240" x2="390" y2="260"/></g>
+        <text x="210" y="238" text-anchor="middle" font-size="16"><tspan font-weight="700">distance = 2π</tspan><tspan font-style="italic">r</tspan></text>
+        <text x="210" y="282" text-anchor="middle" class="lbl-m" font-size="13">the circumference, covered in one period T</text>
+      </svg>
+    </figure>
+    <div class="prose">
+      <h3>Where v = 2πr / T comes from</h3>
+      <p>Speed is distance divided by time. In one period <span class="mono">T</span>, the object goes around once, a distance equal to the circumference <span class="mono">2πr</span>.</p>
+      <p class="eq"><i>v</i> = <span class="frac"><span>distance</span><span>time</span></span> = <span class="frac"><span>2π<i>r</i></span><span><i>T</i></span></span></p>
+      <div class="callout blue">
+        <strong>Unit tip: rpm</strong>
+        Motors and fans are often rated in revolutions per minute. Divide by 60 to get frequency: 1200 rpm ÷ 60 = 20 rev/s, so <span class="mono">T = 1/20 = 0.05 s</span>.
+      </div>
+    </div>
+  </div>
+
+  <div class="formulas">
+    <div class="formula"><span class="lab">Frequency</span><span class="eq"><i>f</i> = <span class="frac"><span>1</span><span><i>T</i></span></span></span><p>Short period means high frequency. They are reciprocals.</p></div>
+    <div class="formula hero"><span class="lab">Speed</span><span class="eq"><i>v</i> = <span class="frac"><span>2π<i>r</i></span><span><i>T</i></span></span></span><p>The equation you'll use most often in this unit.</p></div>
+    <div class="formula"><span class="lab">Speed using f</span><span class="eq"><i>v</i> = 2π<i>r f</i></span><p>Same equation, written with frequency.</p></div>
+    <div class="formula"><span class="lab">Extension: angular</span><span class="eq"><i>ω</i> = <span class="frac"><span>2π</span><span><i>T</i></span></span>,&nbsp; <i>v</i> = <i>ωr</i></span><p>Used in some courses and in rotational motion later.</p></div>
+  </div>
+
+  <div class="card example">
+    <h3>Quick check: ceiling fan</h3>
+    <div class="given"><span>r = 0.60 m</span><span>3 rev/s</span></div>
+    <ul class="work">
+      <li><small>Period</small><span class="calc">T = 1/f = 1/3 = 0.333 s</span></li>
+      <li><small>Speed of the blade tip</small><span class="calc">v = 2π(0.60)/0.333 = 11.3 m/s</span></li>
+    </ul>
+    <p class="answer">The blade tip moves at <span class="mono">≈ 11 m/s</span>, about 25 mph. Points closer to the center move slower because their circle is smaller.</p>
+  </div>
+</section>
+
+<!-- ============ 3. ACCELERATION ============ -->
+<section class="panel" id="acceleration" role="tabpanel" aria-labelledby="t-acceleration" hidden>
+  <header>
+    <h2>Centripetal acceleration points to the center</h2>
+    <p>Acceleration is the change in velocity divided by time. To find its direction, compare the velocity at two nearby moments and look at the difference, Δ<i>v</i>.</p>
+  </header>
+
+  <div class="row wide-left">
+    <figure>
+      <svg viewBox="0 0 440 300" role="img" aria-label="Velocity vectors at two points on the circle, redrawn tail to tail. The change in velocity points toward the center.">
+        <defs>
+          <marker id="mv3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" style="fill:var(--vel)"/></marker>
+          <marker id="ma3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" style="fill:var(--acc)"/></marker>
+        </defs>
+        <circle cx="150" cy="170" r="100" fill="none" style="stroke:var(--path)" stroke-width="2" stroke-dasharray="5 6"/>
+        <circle cx="150" cy="170" r="4" style="fill:var(--ink)"/>
+        <text x="158" y="186" class="lbl-m" font-size="12">center</text>
+        <line x1="150" y1="170" x2="200" y2="83.4" style="stroke:var(--path)" stroke-width="1"/>
+        <line x1="150" y1="170" x2="100" y2="83.4" style="stroke:var(--path)" stroke-width="1"/>
+        <!-- point 1 at 60deg, point 2 at 120deg, moving counterclockwise -->
+        <line x1="200" y1="83.4" x2="148" y2="53.4" style="stroke:var(--vel)" stroke-width="3.5" marker-end="url(#mv3)"/>
+        <line x1="100" y1="83.4" x2="48" y2="113.4" style="stroke:var(--vel)" stroke-width="3.5" marker-end="url(#mv3)"/>
+        <circle cx="200" cy="83.4" r="7" style="fill:var(--ink)"/>
+        <circle cx="100" cy="83.4" r="7" style="fill:var(--ink)"/>
+        <text x="208" y="80" class="lbl-v" font-size="15">v₁</text>
+        <text x="35" y="132" class="lbl-v" font-size="15">v₂</text>
+        <text x="190" y="105" class="lbl-m" font-size="12">earlier</text>
+        <text x="78" y="72" class="lbl-m" font-size="12">later</text>
+        <!-- tail to tail -->
+        <line x1="290" y1="30" x2="290" y2="290" style="stroke:var(--line)" stroke-width="1"/>
+        <text x="310" y="38" class="lbl-m" font-size="12">redraw tail to tail</text>
+        <circle cx="400" cy="150" r="3.5" style="fill:var(--ink)"/>
+        <line x1="400" y1="150" x2="330.7" y2="110" style="stroke:var(--vel)" stroke-width="3.5" marker-end="url(#mv3)"/>
+        <line x1="400" y1="150" x2="330.7" y2="190" style="stroke:var(--vel)" stroke-width="3.5" marker-end="url(#mv3)"/>
+        <line x1="330.7" y1="110" x2="330.7" y2="186" style="stroke:var(--acc)" stroke-width="3.5" marker-end="url(#ma3)"/>
+        <text x="362" y="117" class="lbl-v" font-size="15">v₁</text>
+        <text x="362" y="196" class="lbl-v" font-size="15">v₂</text>
+        <text x="300" y="155" class="lbl-a" font-size="15" text-anchor="end">Δv</text>
+        <text x="310" y="250" class="lbl-a" font-size="13">Δv points down,</text>
+        <text x="310" y="268" class="lbl-a" font-size="13">toward the center</text>
+      </svg>
+      <div class="key"><span><i class="sw v"></i>velocity</span><span><i class="sw a"></i>change in velocity (Δv) = direction of acceleration</span></div>
+    </figure>
+    <div class="prose">
+      <p>The ball moves counterclockwise from the earlier point to the later one. Its velocity turns from <span class="v">v₁</span> to <span class="v">v₂</span>. Both arrows have the same length because the speed is the same.</p>
+      <p>Draw them tail to tail. The arrow that goes from the tip of <span class="v">v₁</span> to the tip of <span class="v">v₂</span> is <span class="a">Δv</span>, and it points straight toward the center of the circle.</p>
+      <p>Since <span class="mono">a = Δv / Δt</span>, the acceleration points the same way as Δv: <strong>toward the center</strong>. This is true at every point on the circle.</p>
+    </div>
+  </div>
+
+  <div class="formulas">
+    <div class="formula hero"><span class="lab">Centripetal acceleration</span><span class="eq"><i>a</i><sub>c</sub> = <span class="frac"><span><i>v</i>²</span><span><i>r</i></span></span></span><p>Use this when you know the speed.</p></div>
+    <div class="formula"><span class="lab">Using period</span><span class="eq"><i>a</i><sub>c</sub> = <span class="frac"><span>4π²<i>r</i></span><span><i>T</i>²</span></span></span><p>Substitute v = 2πr/T into v²/r.</p></div>
+    <div class="formula"><span class="lab">Extension: angular</span><span class="eq"><i>a</i><sub>c</sub> = <i>ω</i>²<i>r</i></span><p>Same idea, written with angular speed.</p></div>
+  </div>
+
+  <div class="row">
+    <figure>
+      <svg viewBox="0 0 360 260" role="img" aria-label="When the string is released, the ball travels in a straight line along the tangent, not outward from the center.">
+        <defs>
+          <marker id="mv4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" style="fill:var(--vel)"/></marker>
+          <marker id="mb4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" style="fill:var(--bad)"/></marker>
+        </defs>
+        <circle cx="120" cy="150" r="85" fill="none" style="stroke:var(--path)" stroke-width="2" stroke-dasharray="5 6"/>
+        <circle cx="120" cy="150" r="4" style="fill:var(--ink)"/>
+        <line x1="120" y1="150" x2="120" y2="65" style="stroke:var(--path)" stroke-width="1.5" stroke-dasharray="2 3"/>
+        <circle cx="120" cy="65" r="8" style="fill:var(--ink)" opacity=".35"/>
+        <line x1="120" y1="65" x2="320" y2="65" style="stroke:var(--vel)" stroke-width="3" stroke-dasharray="8 6" marker-end="url(#mv4)"/>
+        <circle cx="245" cy="65" r="8" style="fill:var(--ink)" opacity=".6"/>
+        <circle cx="315" cy="65" r="8" style="fill:var(--ink)"/>
+        <text x="200" y="50" class="lbl-v" font-size="13">actual path: along the tangent</text>
+        <line x1="120" y1="65" x2="120" y2="12" style="stroke:var(--bad)" stroke-width="2.5" marker-end="url(#mb4)"/>
+        <text x="130" y="24" font-size="13" style="fill:var(--bad)" font-weight="700">✗ not straight outward</text>
+        <text x="60" y="140" class="lbl-m" font-size="12">string cut here ↑</text>
+      </svg>
+    </figure>
+    <div class="prose">
+      <h3>What if you let go?</h3>
+      <p>Cut the string and the inward pull disappears. With no net force, Newton's first law says the ball keeps its velocity at that instant, so it moves in a straight line <strong>along the tangent</strong>.</p>
+      <p>It does not fly straight outward. Nothing pushes it out. The circle only happens because something keeps pulling inward.</p>
+    </div>
+  </div>
+
+  <div>
+    <h3 style="margin-bottom:12px">How a<sub>c</sub> responds to changes</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>If you…</th><th>Keep constant</th><th>a<sub>c</sub> becomes</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td>Double the speed</td><td>r</td><td class="num"><strong>4×</strong></td><td>v is squared: 2² = 4</td></tr>
+          <tr><td>Triple the speed</td><td>r</td><td class="num"><strong>9×</strong></td><td>3² = 9</td></tr>
+          <tr><td>Double the radius</td><td>v</td><td class="num"><strong>½×</strong></td><td>r is in the denominator of v²/r</td></tr>
+          <tr><td>Double the radius</td><td>T</td><td class="num"><strong>2×</strong></td><td>a = 4π²r/T², so a ∝ r</td></tr>
+          <tr><td>Halve the period</td><td>r</td><td class="num"><strong>4×</strong></td><td>T² in the denominator: (½)² = ¼</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 4. FORCE ============ -->
+<section class="panel" id="force" role="tabpanel" aria-labelledby="t-force" hidden>
+  <header>
+    <h2>Centripetal force: a job, not a new force</h2>
+    <p>Newton's second law (F = ma) says an inward acceleration needs an inward <strong>net force</strong>.</p>
+  </header>
+
+  <div class="row">
+    <div class="formula hero" style="align-items:flex-start">
+      <span class="lab">Newton's 2nd law, toward the center</span>
+      <span class="eq" style="font-size:1.9rem">Σ<i>F</i><sub>in</sub> = <i>m</i><span class="frac"><span><i>v</i>²</span><span><i>r</i></span></span></span>
+      <p>Add up the real forces pointing toward the center (minus any pointing away). That total must equal mv²/r.</p>
+    </div>
+    <div class="callout">
+      <strong>The most important rule in this unit</strong>
+      "Centripetal force" is the <em>name of a job</em>, like "goalkeeper." Some real force has to do the job: tension, friction, gravity or a normal force. <span class="mark">Never draw a separate arrow labeled F<sub>c</sub></span> on a free-body diagram.
+    </div>
+  </div>
+
+  <div>
+    <h3 style="margin-bottom:12px">Who does the job? Four free-body diagrams</h3>
+    <div class="fbd">
+      <figure>
+        <svg viewBox="0 0 200 160" role="img" aria-label="Top view: ball on a string, tension points to the center.">
+          <defs><marker id="ma5" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" style="fill:var(--acc)"/></marker>
+          <marker id="mv5" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" style="fill:var(--vel)"/></marker></defs>
+          <circle cx="90" cy="85" r="60" fill="none" style="stroke:var(--path)" stroke-dasharray="4 5" stroke-width="1.5"/>
+          <line x1="90" y1="85" x2="150" y2="85" style="stroke:var(--ink)" stroke-width="1.5"/>
+          <circle cx="90" cy="85" r="4" style="fill:var(--ink)"/>
+          <line x1="150" y1="85" x2="112" y2="85" style="stroke:var(--acc)" stroke-width="4" marker-end="url(#ma5)"/>
+          <line x1="150" y1="85" x2="150" y2="35" style="stroke:var(--vel)" stroke-width="3" marker-end="url(#mv5)"/>
+          <circle cx="150" cy="85" r="8" style="fill:var(--ink)"/>
+          <text x="118" y="104" class="lbl-a" font-size="14">T</text>
+          <text x="158" y="45" class="lbl-v" font-size="14">v</text>
+          <text x="8" y="152" class="lbl-m" font-size="11">top view</text>
+        </svg>
+        <h3>Ball on a string</h3>
+        <p class="src">Provided by: <span class="a">tension</span><br><span class="mono">T = mv²/r</span></p>
+      </figure>
+      <figure>
+        <svg viewBox="0 0 200 160" role="img" aria-label="Top view: car on a flat curve, friction points to the center of the curve.">
+          <defs><marker id="ma6" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" style="fill:var(--acc)"/></marker>
+          <marker id="mv6" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" style="fill:var(--vel)"/></marker></defs>
+          <circle cx="90" cy="85" r="72" fill="none" style="stroke:var(--line)" stroke-width="22"/>
+          <circle cx="90" cy="85" r="72" fill="none" style="stroke:var(--path)" stroke-dasharray="6 6" stroke-width="1.5"/>
+          <circle cx="90" cy="85" r="4" style="fill:var(--ink)"/>
+          <rect x="153" y="72" width="18" height="28" rx="4" style="fill:var(--ink)"/>
+          <line x1="158" y1="86" x2="112" y2="86" style="stroke:var(--acc)" stroke-width="4" marker-end="url(#ma6)"/>
+          <line x1="162" y1="72" x2="162" y2="28" style="stroke:var(--vel)" stroke-width="3" marker-end="url(#mv6)"/>
+          <text x="118" y="104" class="lbl-a" font-size="14">f</text>
+          <text x="170" y="38" class="lbl-v" font-size="14">v</text>
+          <text x="8" y="152" class="lbl-m" font-size="11">top view</text>
+        </svg>
+        <h3>Car on a flat curve</h3>
+        <p class="src">Provided by: <span class="a">static friction</span><br><span class="mono">f = mv²/r, and f ≤ μmg</span></p>
+      </figure>
+      <figure>
+        <svg viewBox="0 0 200 160" role="img" aria-label="Moon orbiting Earth, gravity points toward Earth.">
+          <defs><marker id="ma7" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" style="fill:var(--acc)"/></marker>
+          <marker id="mv7" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" style="fill:var(--vel)"/></marker></defs>
+          <circle cx="90" cy="85" r="64" fill="none" style="stroke:var(--path)" stroke-dasharray="4 5" stroke-width="1.5"/>
+          <circle cx="90" cy="85" r="20" style="fill:var(--vel)" opacity=".35"/>
+          <circle cx="90" cy="85" r="20" fill="none" style="stroke:var(--vel)" stroke-width="2"/>
+          <text x="90" y="90" text-anchor="middle" font-size="11" font-weight="700">Earth</text>
+          <line x1="154" y1="85" x2="118" y2="85" style="stroke:var(--acc)" stroke-width="4" marker-end="url(#ma7)"/>
+          <line x1="154" y1="85" x2="154" y2="35" style="stroke:var(--vel)" stroke-width="3" marker-end="url(#mv7)"/>
+          <circle cx="154" cy="85" r="7" style="fill:var(--path)"/>
+          <text x="120" y="104" class="lbl-a" font-size="13">F<tspan font-size="10" dy="3">g</tspan></text>
+          <text x="162" y="45" class="lbl-v" font-size="14">v</text>
+          <text x="160" y="108" class="lbl-m" font-size="11">Moon</text>
+        </svg>
+        <h3>Moon around Earth</h3>
+        <p class="src">Provided by: <span class="a">gravity</span><br><span class="mono">F<sub>g</sub> = mv²/r</span></p>
+      </figure>
+      <figure>
+        <svg viewBox="0 0 200 160" role="img" aria-label="Roller coaster cart at the top of a loop. Normal force and weight both point down, toward the center.">
+          <defs><marker id="ma8" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" style="fill:var(--acc)"/></marker>
+          <marker id="mv8" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" style="fill:var(--vel)"/></marker></defs>
+          <circle cx="100" cy="95" r="58" fill="none" style="stroke:var(--ink)" stroke-width="3"/>
+          <circle cx="100" cy="95" r="3.5" style="fill:var(--ink)"/>
+          <rect x="88" y="37" width="24" height="14" rx="3" style="fill:var(--ink)"/>
+          <line x1="94" y1="51" x2="94" y2="85" style="stroke:var(--acc)" stroke-width="3.5" marker-end="url(#ma8)"/>
+          <line x1="106" y1="51" x2="106" y2="85" style="stroke:var(--acc)" stroke-width="3.5" marker-end="url(#ma8)"/>
+          <line x1="88" y1="30" x2="40" y2="30" style="stroke:var(--vel)" stroke-width="3" marker-end="url(#mv8)"/>
+          <text x="72" y="76" class="lbl-a" font-size="13">N</text>
+          <text x="110" y="76" class="lbl-a" font-size="13">mg</text>
+          <text x="44" y="22" class="lbl-v" font-size="14">v</text>
+          <text x="8" y="152" class="lbl-m" font-size="11">side view, inside the loop</text>
+        </svg>
+        <h3>Top of a loop</h3>
+        <p class="src">Provided by: <span class="a">normal force + weight</span><br><span class="mono">N + mg = mv²/r</span></p>
+      </figure>
+    </div>
+  </div>
+
+  <div class="row wide-left">
+    <figure>
+      <svg viewBox="0 0 320 220" role="img" aria-label="Top view of a car turning left. The passenger's body would continue straight along the dashed line, but the car door pushes the passenger inward.">
+        <defs>
+          <marker id="ma9" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" style="fill:var(--acc)"/></marker>
+          <marker id="mp9" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" style="fill:var(--path)"/></marker>
+        </defs>
+        <path d="M195 210 A155 155 0 0 0 66.9 57.4" fill="none" style="stroke:var(--line)" stroke-width="3"/>
+        <path d="M225 210 A185 185 0 0 0 72.1 27.8" fill="none" style="stroke:var(--line)" stroke-width="3"/>
+        <path d="M210 210 A170 170 0 0 0 69.5 42.6" fill="none" style="stroke:var(--vel)" stroke-width="2.5"/>
+        <line x1="187.2" y1="125" x2="132.2" y2="29.7" style="stroke:var(--path)" stroke-width="2.5" stroke-dasharray="7 6" marker-end="url(#mp9)"/>
+        <g transform="translate(187.2 125) rotate(-30)">
+          <rect x="-9" y="-15" width="18" height="30" rx="4" style="fill:var(--ink)"/>
+        </g>
+        <line x1="187.2" y1="125" x2="152" y2="145.3" style="stroke:var(--acc)" stroke-width="4" marker-end="url(#ma9)"/>
+        <text x="138" y="22" class="lbl-m" font-size="12">your body "wants" to go straight</text>
+        <text x="222" y="180" font-size="12" style="fill:var(--vel)" font-weight="700">car's path</text>
+        <text x="80" y="170" class="lbl-a" font-size="12">door pushes you inward</text>
+      </svg>
+    </figure>
+    <div class="prose">
+      <h3>The "centrifugal force" myth</h3>
+      <p>In a car taking a sharp left turn, you feel thrown to the right. No outward force is acting on you.</p>
+      <p>Your body has inertia and keeps moving straight (dashed line). The car turns under you, so the door comes toward you and <span class="a">pushes you inward</span>. That inward push is the centripetal force acting on you.</p>
+      <p>In an inertial (non-accelerating) frame, which is the frame used in this course, there is no outward force to draw.</p>
+    </div>
+  </div>
+
+  <div class="row">
+    <figure>
+      <svg id="quad-svg" viewBox="0 0 360 250" role="img" aria-label="Graph of centripetal force versus speed for a 1 kg mass on a 1 m radius. Force grows as the square of speed: 1, 4, 9 and 16 newtons at 1, 2, 3 and 4 meters per second."></svg>
+      <figcaption>m = 1 kg, r = 1 m. Force grows with the square of speed.</figcaption>
+    </figure>
+    <div class="prose">
+      <h3>Why speeding through a curve is dangerous</h3>
+      <p>Because F = mv²/r, the inward force needed grows with the <strong>square</strong> of speed.</p>
+      <p>Going around a curve at twice the speed needs <span class="mark">four times</span> the friction. If the road can't supply it (ice, gravel, worn tires), the car can't stay on the curve and slides off along a straighter path.</p>
+      <p>Tighter curves (smaller r) also need more force at the same speed. That's why sharp turns have lower speed limits.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 5. EXAMPLES ============ -->
+<section class="panel" id="examples" role="tabpanel" aria-labelledby="t-examples" hidden>
+  <header>
+    <h2>Worked examples</h2>
+    <p>Use the same six steps on every circular motion problem.</p>
+  </header>
+
+  <ol class="steps">
+    <li>Sketch the circle and mark the <strong>center</strong>.</li>
+    <li>Draw a free-body diagram with <strong>real forces only</strong>.</li>
+    <li>Choose <strong>toward the center</strong> as the positive direction.</li>
+    <li>If you're given the period, find speed first: <span class="mono">v = 2πr/T</span>.</li>
+    <li>Write <span class="mono">ΣF<sub>in</sub> = mv²/r</span>.</li>
+    <li>Solve, then check that the units and size of the answer make sense.</li>
+  </ol>
+
+  <div class="card example">
+    <h3>Example 1: Ball on a string</h3>
+    <p>A 0.50 kg ball is swung in a horizontal circle of radius 1.2 m. It makes one revolution every 0.80 s. Find its speed, its acceleration, and the tension in the string.</p>
+    <div class="given"><span>m = 0.50 kg</span><span>r = 1.2 m</span><span>T = 0.80 s</span></div>
+    <ul class="work">
+      <li><small>Speed from the period</small><span class="calc">v = 2πr/T = 2π(1.2)/0.80 = 9.42 m/s</span></li>
+      <li><small>Centripetal acceleration</small><span class="calc">a = v²/r = (9.42)²/1.2 = 74.0 m/s²  (toward the center)</span></li>
+      <li><small>Tension is the only inward force</small><span class="calc">T<sub>string</sub> = ma = 0.50 × 74.0 = 37 N</span></li>
+    </ul>
+    <p class="answer">Answer: <span class="mono">v = 9.4 m/s</span>, <span class="mono">a = 74 m/s²</span>, <span class="mono">tension = 37 N</span>. That acceleration is about 7.5 g.</p>
+  </div>
+
+  <div class="card example">
+    <h3>Example 2: Car on a flat curve</h3>
+    <p>A 1200 kg car rounds a flat curve of radius 50 m at 15 m/s. How much friction is needed? What is the minimum coefficient of static friction?</p>
+    <div class="given"><span>m = 1200 kg</span><span>r = 50 m</span><span>v = 15 m/s</span><span>g = 9.8 m/s²</span></div>
+    <ul class="work">
+      <li><small>Friction does the centripetal job</small><span class="calc">f = mv²/r = 1200 × 15² / 50 = 5400 N</span></li>
+      <li><small>Maximum friction available is μN = μmg</small><span class="calc">μmg = mv²/r  →  μ = v²/(rg)</span></li>
+      <li><small>Mass cancels</small><span class="calc">μ = 225 / (50 × 9.8) = 0.46</span></li>
+    </ul>
+    <p class="answer">Answer: <span class="mono">5400 N</span> of friction, so <span class="mono">μ ≥ 0.46</span>. Dry asphalt (μ ≈ 0.7) works. Ice (μ ≈ 0.1) does not.</p>
+  </div>
+
+  <div class="card example">
+    <h3>Example 3: Top of a roller-coaster loop</h3>
+    <p>What is the slowest a cart can go at the top of a loop of radius 10 m and still stay on the track?</p>
+    <div class="given"><span>r = 10 m</span><span>g = 9.8 m/s²</span></div>
+    <ul class="work">
+      <li><small>At the top, both N and mg point down, toward the center</small><span class="calc">N + mg = mv²/r</span></li>
+      <li><small>Slowest case: the track barely touches, so N = 0</small><span class="calc">mg = mv²/r  →  v = √(gr)</span></li>
+      <li><small>Plug in</small><span class="calc">v = √(9.8 × 10) = 9.9 m/s</span></li>
+    </ul>
+    <p class="answer">Answer: <span class="mono">v<sub>min</sub> ≈ 9.9 m/s</span>. Any slower and gravity pulls the cart down more than the circle needs, so it leaves the track.</p>
+    <p style="font-size:.9rem;color:var(--muted)">Note: speed changes as the cart climbs, so the whole loop isn't uniform motion. We apply F = mv²/r at one point.</p>
+  </div>
+</section>
+
+<!-- ============ 6. SIMULATOR ============ -->
+<section class="panel" id="simulator" role="tabpanel" aria-labelledby="t-simulator" hidden>
+  <header>
+    <h2>Simulator: ball on a string</h2>
+    <p>Change the radius, period and mass and watch the numbers. Then cut the string to see which way the ball goes.</p>
+  </header>
+  <div class="sim">
+    <figure>
+      <svg id="sim-svg" viewBox="0 0 400 400" role="img" aria-label="Simulated ball on a string moving in a circle with velocity and acceleration arrows.">
+        <defs>
+          <marker id="mvs" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" style="fill:var(--vel)"/></marker>
+          <marker id="mas" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" style="fill:var(--acc)"/></marker>
+        </defs>
+        <g id="s-scale" class="lbl-m"></g>
+        <circle id="s-path" cx="200" cy="200" fill="none" style="stroke:var(--path)" stroke-width="2" stroke-dasharray="5 6"/>
+        <circle cx="200" cy="200" r="4" style="fill:var(--ink)"/>
+        <line id="s-string" style="stroke:var(--ink)" stroke-width="1.5"/>
+        <line id="s-trail" style="stroke:var(--vel)" stroke-width="2" stroke-dasharray="6 6" opacity=".7"/>
+        <line id="s-vel" style="stroke:var(--vel)" stroke-width="4" marker-end="url(#mvs)"/>
+        <line id="s-acc" style="stroke:var(--acc)" stroke-width="4" marker-end="url(#mas)"/>
+        <circle id="s-ball" r="10" style="fill:var(--ink)"/>
+      </svg>
+      <div class="key"><span><i class="sw v"></i>velocity</span><span><i class="sw a"></i>acceleration</span></div>
+      <figcaption>Arrows grow with v and a, but they are not drawn to scale. The dashed circle's size matches the radius slider (1 m grid ticks).</figcaption>
+    </figure>
+    <div class="controls">
+      <div class="slider"><label for="sim-r">Radius r <output id="o-r">1.5 m</output></label><input id="sim-r" type="range" min="0.5" max="3" step="0.1" value="1.5"></div>
+      <div class="slider"><label for="sim-T">Period T <output id="o-T">2.0 s</output></label><input id="sim-T" type="range" min="0.5" max="5" step="0.1" value="2"></div>
+      <div class="slider"><label for="sim-m">Mass m <output id="o-m">0.50 kg</output></label><input id="sim-m" type="range" min="0.1" max="5" step="0.05" value="0.5"></div>
+      <dl class="readout">
+        <div class="velo"><dt>Speed v = 2πr/T</dt><dd id="r-v">–</dd></div>
+        <div class="accent"><dt>Acceleration a = v²/r</dt><dd id="r-a">–</dd></div>
+        <div class="accent"><dt>Tension F = mv²/r</dt><dd id="r-F">–</dd></div>
+        <div><dt>Frequency f = 1/T</dt><dd id="r-f">–</dd></div>
+        <div><dt>a compared with g</dt><dd id="r-g">–</dd></div>
+        <div><dt>Angular speed ω</dt><dd id="r-w">–</dd></div>
+      </dl>
+      <div class="btns">
+        <button class="btn" id="cut">Cut the string</button>
+        <button class="btn ghost" id="play">Pause</button>
+      </div>
+      <p class="status" id="sim-status">Try this: halve the period and watch the tension. It goes up 4×.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 7. PRACTICE ============ -->
+<section class="panel" id="practice" role="tabpanel" aria-labelledby="t-practice" hidden>
+  <header>
+    <h2>Practice problems</h2>
+    <p>Use g = 9.8 m/s². Numeric answers within 2% count as correct. <span class="score" id="score">Score: 0 / 10</span></p>
+  </header>
+
+  <div class="qs">
+    <div class="q" data-type="num" data-answer="3.14" data-tol="0.02">
+      <span class="qn">Question 1</span>
+      <p>A child sits 2.0 m from the center of a merry-go-round that makes one revolution every 4.0 s. What is the child's speed in m/s?</p>
+      <div class="ans"><input type="number" step="any" id="q1" aria-label="Answer to question 1"><span>m/s</span><button class="btn ghost check">Check</button><span class="fb" aria-live="polite"></span></div>
+      <details><summary>Show solution</summary><p>v = 2πr/T = 2π(2.0)/4.0 = 3.14 m/s</p></details>
+    </div>
+    <div class="q" data-type="num" data-answer="4.93" data-tol="0.02">
+      <span class="qn">Question 2</span>
+      <p>What is that child's centripetal acceleration in m/s²?</p>
+      <div class="ans"><input type="number" step="any" id="q2" aria-label="Answer to question 2"><span>m/s²</span><button class="btn ghost check">Check</button><span class="fb" aria-live="polite"></span></div>
+      <details><summary>Show solution</summary><p>a = v²/r = (3.14)²/2.0 = 4.93 m/s², directed toward the center.</p></details>
+    </div>
+    <div class="q" data-type="num" data-answer="9.9" data-tol="0.02">
+      <span class="qn">Question 3</span>
+      <p>What is the minimum speed at the top of a roller-coaster loop of radius 10 m?</p>
+      <div class="ans"><input type="number" step="any" id="q3" aria-label="Answer to question 3"><span>m/s</span><button class="btn ghost check">Check</button><span class="fb" aria-live="polite"></span></div>
+      <details><summary>Show solution</summary><p>At minimum speed N = 0, so mg = mv²/r and v = √(gr) = √(98) = 9.9 m/s.</p></details>
+    </div>
+    <div class="q" data-type="num" data-answer="9" data-tol="0.02">
+      <span class="qn">Question 4</span>
+      <p>A ball on a string moves in a circle. If its speed triples and the radius stays the same, the tension becomes how many times larger?</p>
+      <div class="ans"><input type="number" step="any" id="q4" aria-label="Answer to question 4"><span>times</span><button class="btn ghost check">Check</button><span class="fb" aria-live="polite"></span></div>
+      <details><summary>Show solution</summary><p>Tension = mv²/r, so it scales with v². 3² = 9 times larger.</p></details>
+    </div>
+    <div class="q" data-type="num" data-answer="31.4" data-tol="0.02">
+      <span class="qn">Question 5</span>
+      <p>A fan spins at 1200 rpm. Its blade tips are 0.25 m from the axle. How fast do the tips move, in m/s?</p>
+      <div class="ans"><input type="number" step="any" id="q5" aria-label="Answer to question 5"><span>m/s</span><button class="btn ghost check">Check</button><span class="fb" aria-live="polite"></span></div>
+      <details><summary>Show solution</summary><p>f = 1200/60 = 20 rev/s, so T = 0.05 s. v = 2π(0.25)/0.05 = 31.4 m/s.</p></details>
+    </div>
+    <div class="q" data-type="mc" data-answer="b">
+      <span class="qn">Question 6</span>
+      <p>An object is in uniform circular motion. The net force on it is…</p>
+      <div class="opts">
+        <label><input type="radio" name="q6" value="a"> zero, because the speed is constant</label>
+        <label><input type="radio" name="q6" value="b"> directed toward the center of the circle</label>
+        <label><input type="radio" name="q6" value="c"> directed outward, away from the center</label>
+        <label><input type="radio" name="q6" value="d"> in the same direction as the velocity</label>
+      </div>
+      <div class="ans"><button class="btn ghost check">Check</button><span class="fb" aria-live="polite"></span></div>
+      <details><summary>Show solution</summary><p>Velocity is changing direction, so there is acceleration toward the center, and by F = ma the net force also points toward the center.</p></details>
+    </div>
+    <div class="q" data-type="mc" data-answer="c">
+      <span class="qn">Question 7</span>
+      <p>You are swinging a ball on a string and let go. Right after release, the ball moves…</p>
+      <div class="opts">
+        <label><input type="radio" name="q7" value="a"> straight outward, away from the center</label>
+        <label><input type="radio" name="q7" value="b"> in a smaller circle</label>
+        <label><input type="radio" name="q7" value="c"> in a straight line along the tangent</label>
+        <label><input type="radio" name="q7" value="d"> toward the center</label>
+      </div>
+      <div class="ans"><button class="btn ghost check">Check</button><span class="fb" aria-live="polite"></span></div>
+      <details><summary>Show solution</summary><p>With the inward force gone, Newton's first law keeps the velocity it had at that instant, which points along the tangent.</p></details>
+    </div>
+
+    <div class="q">
+      <span class="qn">Question 8 · Worksheet #22 · Vertical circle</span>
+      <p>A <strong>0.50 kg</strong> ball is attached to a string <strong>1.20 m</strong> long and swung in a <strong>vertical</strong> circle. At the <strong>bottom</strong> of the circle, the ball moves with a speed of <strong>7.50 m/s</strong>.</p>
+      <div class="example"><div class="given"><span>m = 0.50 kg</span><span>r = 1.20 m</span><span>v<sub>bottom</sub> = 7.50 m/s</span><span>v<sub>top</sub> = 4.00 m/s</span><span>g = 9.8 m/s²</span></div></div>
+
+      <div class="part">
+        <span class="pl">(a) Draw a free-body diagram of all forces on the ball at the bottom of the circle.</span>
+        <p style="color:var(--muted);font-size:.93rem">Sketch it on paper first, then compare.</p>
+        <details><summary>Show the free-body diagram</summary>
+          <div class="q8-figs">
+            <figure>
+              <svg viewBox="0 0 240 260" role="img" aria-label="Ball at the bottom of a vertical circle. Tension of 28.3 newtons points up toward the center; weight of 4.9 newtons points down.">
+                <defs>
+                  <marker id="q8a" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" style="fill:var(--acc)"/></marker>
+                  <marker id="q8i" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" style="fill:var(--ink)"/></marker>
+                  <marker id="q8v" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" style="fill:var(--vel)"/></marker>
+                </defs>
+                <circle cx="120" cy="112" r="100" fill="none" style="stroke:var(--path)" stroke-width="1.5" stroke-dasharray="5 6"/>
+                <circle cx="120" cy="112" r="3.5" style="fill:var(--ink)"/>
+                <text x="128" y="108" class="lbl-m" font-size="11">center</text>
+                <line x1="120" y1="212" x2="120" y2="99" style="stroke:var(--acc)" stroke-width="3.5" marker-end="url(#q8a)"/>
+                <line x1="120" y1="212" x2="120" y2="234" style="stroke:var(--ink)" stroke-width="3.5" marker-end="url(#q8i)"/>
+                <line x1="132" y1="212" x2="190" y2="212" style="stroke:var(--vel)" stroke-width="2.5" marker-end="url(#q8v)"/>
+                <circle cx="120" cy="212" r="8" style="fill:var(--ink)"/>
+                <text x="128" y="155" class="lbl-a" font-size="13">T = 28.3 N</text>
+                <text x="128" y="250" font-size="13" font-weight="700">mg = 4.9 N</text>
+                <text x="150" y="204" class="lbl-v" font-size="12">v = 7.50 m/s</text>
+                <text x="8" y="20" class="lbl-m" font-size="12">BOTTOM</text>
+              </svg>
+              <figcaption>Two real forces only: tension up (toward the center) and weight down. There's no separate "centripetal force" arrow. Arrow lengths are to scale.</figcaption>
+            </figure>
+          </div>
+        </details>
+      </div>
+
+      <div class="part" data-type="num" data-answer="23.4" data-tol="0.02">
+        <span class="pl">(b) Calculate the centripetal force required to keep the ball moving in a circle.</span>
+        <div class="ans"><input type="number" step="any" id="q8b" aria-label="Answer to question 8 part b"><span>N</span><button class="btn ghost check">Check</button><span class="fb" aria-live="polite"></span></div>
+        <details><summary>Show solution</summary>
+          <div class="sol">
+            <p>The required net inward force depends only on mass, speed and radius:</p>
+            <span class="calc">F<sub>c</sub> = mv²/r = (0.50)(7.50)² / 1.20 = (0.50)(56.25) / 1.20 = 23.4 N</span>
+            <p>Direction: <strong>up</strong>, toward the center of the circle.</p>
+          </div>
+        </details>
+      </div>
+
+      <div class="part" data-type="num" data-answer="28.3" data-tol="0.02">
+        <span class="pl">(c) Determine the tension in the string at the bottom of the circle.</span>
+        <div class="ans"><input type="number" step="any" id="q8c" aria-label="Answer to question 8 part c"><span>N</span><button class="btn ghost check">Check</button><span class="fb" aria-live="polite"></span></div>
+        <details><summary>Show solution</summary>
+          <div class="sol">
+            <p>Take toward the center (up) as positive. Tension points toward the center (+). Weight points away from it (−).</p>
+            <span class="calc">T − mg = mv²/r</span>
+            <span class="calc">T = mv²/r + mg = 23.4 + (0.50)(9.8) = 23.4 + 4.9 = 28.3 N</span>
+            <p>The string must pull harder than 23.4 N because it also has to overcome the ball's weight. That's why strings tend to break at the bottom.</p>
+          </div>
+        </details>
+      </div>
+
+      <div class="part" data-type="num" data-answer="1.77" data-tol="0.02">
+        <span class="pl">(d) If the speed decreases to 4.00 m/s at the top of the circle, calculate the tension in the string at the top.</span>
+        <div class="ans"><input type="number" step="any" id="q8d" aria-label="Answer to question 8 part d"><span>N</span><button class="btn ghost check">Check</button><span class="fb" aria-live="polite"></span></div>
+        <details><summary>Show solution</summary>
+          <div class="q8-figs">
+            <figure>
+              <svg viewBox="0 0 240 160" role="img" aria-label="Ball at the top of the circle. Tension of 1.77 newtons and weight of 4.9 newtons both point down toward the center.">
+                <defs>
+                  <marker id="q8a2" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" style="fill:var(--acc)"/></marker>
+                  <marker id="q8i2" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" style="fill:var(--ink)"/></marker>
+                  <marker id="q8v2" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" style="fill:var(--vel)"/></marker>
+                </defs>
+                <circle cx="120" cy="140" r="100" fill="none" style="stroke:var(--path)" stroke-width="1.5" stroke-dasharray="5 6"/>
+                <circle cx="120" cy="140" r="3.5" style="fill:var(--ink)"/>
+                <line x1="114" y1="40" x2="114" y2="58" style="stroke:var(--acc)" stroke-width="3" marker-end="url(#q8a2)"/>
+                <line x1="126" y1="40" x2="126" y2="80" style="stroke:var(--ink)" stroke-width="3" marker-end="url(#q8i2)"/>
+                <line x1="108" y1="40" x2="58" y2="40" style="stroke:var(--vel)" stroke-width="2.5" marker-end="url(#q8v2)"/>
+                <circle cx="120" cy="40" r="8" style="fill:var(--ink)"/>
+                <text x="106" y="76" class="lbl-a" font-size="13" text-anchor="end">T = 1.77 N</text>
+                <text x="134" y="76" font-size="13" font-weight="700">mg = 4.9 N</text>
+                <text x="54" y="30" class="lbl-v" font-size="12">v = 4.00 m/s</text>
+                <text x="8" y="152" class="lbl-m" font-size="12">TOP</text>
+              </svg>
+              <figcaption>At the top, tension and weight both point down, toward the center.</figcaption>
+            </figure>
+          </div>
+          <div class="sol">
+            <p>At the top, the center is <strong>below</strong> the ball, so now <em>both</em> forces point toward the center:</p>
+            <span class="calc">T + mg = mv²/r</span>
+            <span class="calc">mv²/r = (0.50)(4.00)² / 1.20 = 8.00 / 1.20 = 6.67 N</span>
+            <span class="calc">T = 6.67 − 4.9 = 1.77 N</span>
+            <p>Gravity already supplies most of the 6.67 N needed, so the string only adds 1.77 N.</p>
+            <p><strong>Going further:</strong> if the top speed dropped below √(gr) = √(9.8 × 1.20) ≈ 3.43 m/s, the tension would have to be negative, which is impossible. The string would go slack and the ball would leave the circle.</p>
+          </div>
+        </details>
+      </div>
+
+      <div class="callout blue">
+        <strong>Summary</strong>
+        Bottom: T − mg = mv²/r → T = 28.3 N (largest). Top: T + mg = mv²/r → T = 1.77 N (smallest). Same string, same ball, very different tensions, because gravity works against the string at the bottom and with it at the top.
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <h3 style="margin-bottom:12px">Common mistakes</h3>
+    <ul class="mistakes">
+      <li><span class="wrong">✗ "Constant speed, so no acceleration."</span><span class="right">✓ The direction changes, so it accelerates.</span></li>
+      <li><span class="wrong">✗ Drawing acceleration outward or along v.</span><span class="right">✓ Acceleration always points to the center.</span></li>
+      <li><span class="wrong">✗ Adding an "F<sub>c</sub>" arrow to the FBD.</span><span class="right">✓ Draw real forces only, then set their sum = mv²/r.</span></li>
+      <li><span class="wrong">✗ Forgetting to square v.</span><span class="right">✓ Double the speed means 4× the force.</span></li>
+      <li><span class="wrong">✗ Using the diameter for r.</span><span class="right">✓ r is center-to-object, half the diameter.</span></li>
+      <li><span class="wrong">✗ Plugging rpm straight in as f.</span><span class="right">✓ Divide rpm by 60 to get rev/s.</span></li>
+    </ul>
+  </div>
+</section>
+
+</main>
+</div>
+
+<footer><div class="wrap">Values use g = 9.8 m/s². Diagrams are in an inertial (non-accelerating) reference frame.</div></footer>
+
+<script>
+(function(){
+  const NS = "http://www.w3.org/2000/svg";
+  const $ = id => document.getElementById(id);
+  const set = (el, attrs) => { for (const k in attrs) el.setAttribute(k, attrs[k]); };
+  const mk = (tag, attrs, parent, text) => { const e = document.createElementNS(NS, tag); set(e, attrs); if (text != null) e.textContent = text; parent.appendChild(e); return e; };
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ---------- tabs ---------- */
+  const tabs = [...document.querySelectorAll(".tab")];
+  let current = "basics";
+  function show(id){
+    if (!document.getElementById(id)) id = "basics";
+    current = id;
+    tabs.forEach(t => {
+      const on = t.getAttribute("aria-controls") === id;
+      t.setAttribute("aria-selected", on);
+      t.tabIndex = on ? 0 : -1;
+      document.getElementById(t.getAttribute("aria-controls")).hidden = !on;
+    });
+    try { history.replaceState(null, "", "#" + id); } catch(e){}
+  }
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => { show(t.getAttribute("aria-controls")); window.scrollTo({top: Math.min(window.scrollY, document.querySelector(".layout").offsetTop)}); });
+    t.addEventListener("keydown", e => {
+      const fwd = e.key === "ArrowDown" || e.key === "ArrowRight", back = e.key === "ArrowUp" || e.key === "ArrowLeft";
+      if (!fwd && !back) return;
+      e.preventDefault();
+      const n = tabs[(i + (fwd ? 1 : tabs.length - 1)) % tabs.length];
+      n.focus(); n.click();
+    });
+  });
+  show((location.hash || "#basics").slice(1));
+  document.querySelectorAll(".topic").forEach(b => b.addEventListener("click", () => {
+    const open = b.getAttribute("aria-expanded") !== "true";
+    b.setAttribute("aria-expanded", open);
+    document.getElementById(b.getAttribute("aria-controls")).hidden = !open;
+  }));
+
+  /* ---------- vector placement ---------- */
+  function placeUCM(o, cx, cy, R, th, vLen, aLen){
+    const x = cx + R*Math.cos(th), y = cy - R*Math.sin(th);
+    const vx = -Math.sin(th), vy = -Math.cos(th);   // counterclockwise tangent (svg y down)
+    const ax = -Math.cos(th), ay = Math.sin(th);    // toward center
+    set(o.ball, {cx:x, cy:y});
+    if (o.rad) set(o.rad, {x1:cx, y1:cy, x2:x, y2:y});
+    set(o.vel, {x1:x, y1:y, x2:x+vx*vLen, y2:y+vy*vLen});
+    set(o.acc, {x1:x, y1:y, x2:x+ax*aLen, y2:y+ay*aLen});
+    if (o.vlab) set(o.vlab, {x:x+vx*(vLen+14)-5, y:y+vy*(vLen+14)+5});
+    if (o.alab) set(o.alab, {x:x+ax*aLen*0.55 - ay*14 - 4, y:y+ay*aLen*0.55 + ax*14 + 5});
+    if (o.rlab) set(o.rlab, {x:cx+(x-cx)*0.5 + ay*-12, y:cy+(y-cy)*0.5 - ax*-12});
+    return {x, y, vx, vy};
+  }
+
+  /* hero */
+  const hero = {ball:$("h-ball"), rad:$("h-rad"), vel:$("h-vel"), acc:$("h-acc"), vlab:$("h-vlab"), alab:$("h-alab"), rlab:$("h-rlab")};
+  const heroAt = th => placeUCM(hero, 180, 165, 115, th, 70, 55);
+  heroAt(0.75);
+
+  /* snapshots */
+  (function(){
+    const s = $("snap-svg"), cx = 170, cy = 150, R = 95;
+    mk("defs", {}, s).innerHTML = '<marker id="mvsn" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" style="fill:var(--vel)"/></marker>';
+    mk("circle", {cx, cy, r:R, fill:"none", style:"stroke:var(--path)", "stroke-width":2, "stroke-dasharray":"5 6"}, s);
+    mk("circle", {cx, cy, r:3.5, style:"fill:var(--ink)"}, s);
+    [[0,"right",[12,4]],[Math.PI/2,"top",[-62,-10]],[Math.PI,"left",[-46,4]],[3*Math.PI/2,"bottom",[12,26]]].forEach(([th,,off]) => {
+      const x = cx + R*Math.cos(th), y = cy - R*Math.sin(th);
+      const vx = -Math.sin(th), vy = -Math.cos(th);
+      mk("line", {x1:x, y1:y, x2:x+vx*50, y2:y+vy*50, style:"stroke:var(--vel)", "stroke-width":3.5, "marker-end":"url(#mvsn)"}, s);
+      mk("circle", {cx:x, cy:y, r:8, style:"fill:var(--ink)"}, s);
+      mk("text", {x:x+off[0], y:y+off[1], class:"lbl-v mono", "font-size":12}, s, "5 m/s");
+    });
+  })();
+
+  /* quadratic chart */
+  (function(){
+    const s = $("quad-svg");
+    const X = v => 54 + v*70, Y = F => 210 - F*11.5;
+    mk("defs", {}, s);
+    for (let F = 0; F <= 16; F += 4){
+      mk("line", {x1:X(0), x2:X(4), y1:Y(F), y2:Y(F), style:"stroke:var(--line)", "stroke-width":1}, s);
+      mk("text", {x:X(0)-8, y:Y(F)+4, "text-anchor":"end", "font-size":11, class:"lbl-m mono"}, s, F);
+    }
+    for (let v = 0; v <= 4; v++) mk("text", {x:X(v), y:Y(0)+18, "text-anchor":"middle", "font-size":11, class:"lbl-m mono"}, s, v);
+    mk("line", {x1:X(0), x2:X(4), y1:Y(0), y2:Y(0), style:"stroke:var(--ink)", "stroke-width":1.5}, s);
+    mk("line", {x1:X(0), x2:X(0), y1:Y(0), y2:Y(16), style:"stroke:var(--ink)", "stroke-width":1.5}, s);
+    mk("text", {x:X(2), y:Y(0)+36, "text-anchor":"middle", "font-size":12, class:"lbl-v"}, s, "speed v (m/s)");
+    const yl = mk("text", {x:14, y:Y(8), "text-anchor":"middle", "font-size":12, class:"lbl-a", transform:`rotate(-90 14 ${Y(8)})`}, s, "force F (N)");
+    let d = "", area = `M${X(0)} ${Y(0)}`;
+    for (let i = 0; i <= 80; i++){ const v = i/20, p = `${X(v).toFixed(1)} ${Y(v*v).toFixed(1)}`; d += (i ? " L" : "M") + p; area += " L" + p; }
+    area += ` L${X(4)} ${Y(0)} Z`;
+    mk("path", {d:area, style:"fill:var(--acc)", opacity:.12}, s);
+    mk("path", {d, fill:"none", style:"stroke:var(--acc)", "stroke-width":3}, s);
+    [1,2,3,4].forEach(v => {
+      mk("line", {x1:X(v), x2:X(v), y1:Y(0), y2:Y(v*v), style:"stroke:var(--path)", "stroke-dasharray":"3 4"}, s);
+      mk("circle", {cx:X(v), cy:Y(v*v), r:5, style:"fill:var(--surface);stroke:var(--acc)", "stroke-width":2.5}, s);
+      mk("text", {x:X(v)-8, y:Y(v*v)-4, "text-anchor":"end", "font-size":12, "font-weight":700}, s, v*v + " N");
+    });
+    mk("text", {x:X(2.15), y:Y(13.5), "font-size":12, "font-weight":700, class:"lbl-a"}, s, "2× speed → 4× force");
+  })();
+
+  /* ---------- simulator ---------- */
+  const S = {r:1.5, T:2, m:0.5, th:0.6, playing:!reduce, released:null};
+  const PX = 52; // pixels per meter
+  const sim = {ball:$("s-ball"), rad:$("s-string"), vel:$("s-vel"), acc:$("s-acc")};
+  const scale = $("s-scale");
+  for (let m = 1; m <= 3; m++){
+    mk("line", {x1:200+m*PX, x2:200+m*PX, y1:372, y2:382, style:"stroke:var(--path)", "stroke-width":1.5}, scale);
+    mk("text", {x:200+m*PX, y:396, "text-anchor":"middle", "font-size":11, class:"lbl-m mono"}, scale, m + " m");
+  }
+  mk("line", {x1:200, x2:200+3*PX, y1:377, y2:377, style:"stroke:var(--path)", "stroke-width":1.5}, scale);
+  mk("line", {x1:200, x2:200, y1:372, y2:382, style:"stroke:var(--path)", "stroke-width":1.5}, scale);
+  mk("text", {x:200, y:396, "text-anchor":"middle", "font-size":11, class:"lbl-m mono"}, scale, "0");
+
+  const fmt = (x, d) => x.toFixed(d);
+  function physics(){
+    const v = 2*Math.PI*S.r/S.T, a = v*v/S.r;
+    return {v, a, F:S.m*a, f:1/S.T, w:2*Math.PI/S.T};
+  }
+  function readout(){
+    const p = physics();
+    $("o-r").textContent = fmt(S.r,1) + " m";
+    $("o-T").textContent = fmt(S.T,1) + " s";
+    $("o-m").textContent = fmt(S.m,2) + " kg";
+    $("r-v").textContent = fmt(p.v,2) + " m/s";
+    $("r-a").textContent = fmt(p.a,1) + " m/s²";
+    $("r-F").textContent = fmt(p.F,1) + " N";
+    $("r-f").textContent = fmt(p.f,2) + " Hz";
+    $("r-g").textContent = fmt(p.a/9.8,2) + " g";
+    $("r-w").textContent = fmt(p.w,2) + " rad/s";
+    set($("s-path"), {r:S.r*PX});
+  }
+  function drawSim(){
+    const p = physics();
+    const vLen = 22 + 95*Math.min(p.v/38, 1);
+    const aLen = 14 + 90*Math.sqrt(Math.min(p.a/480, 1));
+    if (!S.released){
+      placeUCM(sim, 200, 200, S.r*PX, S.th, vLen, aLen);
+      sim.acc.style.display = ""; sim.rad.style.display = "";
+      set($("s-trail"), {x1:0,y1:0,x2:0,y2:0});
+    }
+  }
+  ["r","T","m"].forEach(k => $("sim-"+k).addEventListener("input", e => { S[k] = parseFloat(e.target.value); readout(); drawSim(); }));
+  readout(); drawSim();
+
+  $("cut").addEventListener("click", () => {
+    if (S.released) return;
+    const R = S.r*PX, x = 200 + R*Math.cos(S.th), y = 200 - R*Math.sin(S.th);
+    S.released = {x, y, vx:-Math.sin(S.th), vy:-Math.cos(S.th), speed:R*2*Math.PI/S.T, t0:performance.now()};
+    sim.acc.style.display = "none"; sim.rad.style.display = "none";
+    $("cut").disabled = true;
+    $("sim-status").textContent = "String cut. No inward force now, so no acceleration. The ball keeps its velocity and moves in a straight line along the tangent.";
+    if (!S.playing){ S.playing = true; $("play").textContent = "Pause"; }
+  });
+  $("play").addEventListener("click", () => { S.playing = !S.playing; $("play").textContent = S.playing ? "Pause" : "Play"; });
+  if (!S.playing) $("play").textContent = "Play";
+
+  let last = performance.now(), heroTh = 0.75;
+  function frame(now){
+    const dt = Math.min((now - last)/1000, 0.05); last = now;
+    if (current === "basics" && !reduce){ heroTh += dt*2*Math.PI/4; heroAt(heroTh); }
+    if (current === "simulator" && S.playing){
+      if (S.released){
+        const R = S.released, t = (now - R.t0)/1000, d = R.speed*t;
+        const x = R.x + R.vx*d, y = R.y + R.vy*d;
+        set(sim.ball, {cx:x, cy:y});
+        set($("s-trail"), {x1:R.x, y1:R.y, x2:x, y2:y});
+        const vLen = 22 + 95*Math.min(physics().v/38, 1);
+        set(sim.vel, {x1:x, y1:y, x2:x+R.vx*vLen, y2:y+R.vy*vLen});
+        if (x < -40 || x > 440 || y < -40 || y > 440 || t > 3){
+          S.released = null; $("cut").disabled = false;
+          $("sim-status").textContent = "Ball reset. Cut the string at a different point and compare the direction.";
+          drawSim();
+        }
+      } else {
+        S.th += dt*2*Math.PI/S.T;
+        drawSim();
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  /* ---------- practice ---------- */
+  const qs = [...document.querySelectorAll("[data-type]")];
+  const solved = new Set();
+  qs.forEach((q, i) => {
+    const fb = q.querySelector(".fb");
+    q.querySelector(".check").addEventListener("click", () => {
+      let ok;
+      if (q.dataset.type === "num"){
+        const raw = q.querySelector("input").value.trim();
+        if (raw === ""){ fb.className = "fb no"; fb.textContent = "Enter a number first."; return; }
+        const val = parseFloat(raw), ans = parseFloat(q.dataset.answer), tol = parseFloat(q.dataset.tol);
+        ok = Math.abs(val - ans) <= Math.abs(ans)*tol;
+      } else {
+        const pick = q.querySelector("input:checked");
+        if (!pick){ fb.className = "fb no"; fb.textContent = "Choose an answer first."; return; }
+        ok = pick.value === q.dataset.answer;
+      }
+      fb.className = "fb " + (ok ? "ok" : "no");
+      fb.textContent = ok ? "Correct!" : "Not quite. Try again or open the solution.";
+      ok ? solved.add(i) : solved.delete(i);
+      $("score").textContent = `Score: ${solved.size} / ${qs.length}`;
+    });
+  });
+})();
+</script>
+
+</html>
